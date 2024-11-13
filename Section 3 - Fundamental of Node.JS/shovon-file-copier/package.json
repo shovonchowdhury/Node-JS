@@ -1,0 +1,20 @@
+{
+  "name": "shovon-file-copier",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "A simple file copying tool using Node.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "bin": {
+     "shovon-file-copier": "index.js"
+  },
+  "keywords": [],
+  "author": "Shovon Chowdhury",
+  "license": "MIT",
+  "dependencies": {},
+  "type": "module"
+}
+
+

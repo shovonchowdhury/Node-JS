@@ -1,0 +1,11 @@
+{
+    
+    "scripts": {
+      "debug": "node --inspect-brk --watch app.js",
+      "dev": "node --watch app.js"
+    },
+    "devDependencies": {
+      "@types/node": "^22.5.5"
+    }
+  }
+  

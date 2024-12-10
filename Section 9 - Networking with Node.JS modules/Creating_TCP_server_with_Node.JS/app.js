@@ -10,12 +10,15 @@ server.listen(4000,'0.0.0.0',()=>{
 server.on('connection',(socket)=>{
     socket.on('data',(chunk)=>{
 
-        // console.log(chunk.toString());
+        console.log(chunk.toString());
         socket.write('HTTP\n\nGot the message');
         socket.end();
     })
 
     // console.log(socket.address());
+    socket.on('error',()=>{
+        console.log(`${socket.remoteAddress} Client lost`);
+    })
     socket.on('close',()=>{
         console.log(`Disconnected : ${socket.remoteAddress}`);
     })

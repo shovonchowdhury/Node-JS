@@ -17,4 +17,5 @@ process.stdin.on('data',(input)=>{
 
 socket.on('data',(chunk)=>{
     console.log(chunk.toString());
+    // socket.end();
 })

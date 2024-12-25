@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "name": "section-10---building-restful-crud-apis-with-express-js",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

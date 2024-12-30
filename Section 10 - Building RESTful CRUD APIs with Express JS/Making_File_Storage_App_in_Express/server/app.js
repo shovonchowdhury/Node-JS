@@ -1,6 +1,6 @@
 import express from "express";
 import { createWriteStream } from "fs";
-import { readdir, rename, rm, stat } from "fs/promises";
+import { mkdir, readdir, rename, rm, stat } from "fs/promises";
 
 
 const app= express();
@@ -36,9 +36,10 @@ app.use(express.json());
 
 
 
-app.get('/directory/:dirname?',async(req,res)=>{
+app.get('/directory/?*',async(req,res)=>{
 
-  const {dirname} =req.params;
+  const { 0: dirname } =req.params;
+  console.log(dirname);
   const fullDirPath = `./storage/${dirname ? dirname : ''}`
   const fileList = await readdir(fullDirPath);
   console.log(fullDirPath);
@@ -56,8 +57,26 @@ app.get('/directory/:dirname?',async(req,res)=>{
 )
 
 
-app.get('/files/:filename',(req,res)=>{
-  const {filename}= req.params;
+app.post('/directory/?*',async(req,res)=>{
+
+  const { 0: dirname } =req.params;
+  try{
+    await mkdir(`./storage/${dirname}`);
+  }
+  catch(err)
+  {
+    res.json({message: err.message});
+  }
+  
+}
+)
+
+
+
+
+app.get('/files/*',(req,res)=>{
+  console.log(req.params);
+  const { 0: filename }= req.params;
   console.log(req.query);
   console.log(filename);
 
@@ -69,9 +88,9 @@ app.get('/files/:filename',(req,res)=>{
   res.sendFile(`${import.meta.dirname}/storage/${filename}`);
 })
 
-app.post('/files/:filename',(req,res)=>{
+app.post('/files/*',(req,res)=>{
 
-  const {filename} = req.params;
+  const {0:filename} = req.params;
   const writeStream = createWriteStream(`./storage/${filename}`);
   req.pipe(writeStream);
   req.on('end',()=>{
@@ -79,11 +98,11 @@ app.post('/files/:filename',(req,res)=>{
   })
 })
 
-app.delete('/files/:filename',async(req,res)=>{
+app.delete('/files/*',async(req,res)=>{
 
-  const {filename}= req.params;
+  const {0:filename}= req.params;
   try{
-    await rm(`./storage/${filename}`);
+    await rm(`./storage/${filename}`,{recursive:true});
     res.json({message:"The file has been deleted.",OK:true});
   }
   catch(err){
@@ -92,9 +111,9 @@ app.delete('/files/:filename',async(req,res)=>{
 
 })
 
-app.patch('/files/:filename',async(req,res)=>{
+app.patch('/files/*',async(req,res)=>{
 
-  const {filename}= req.params;
+  const {0:filename}= req.params;
   const {renameFile}= req.body;
   console.log(filename,renameFile);
   try{

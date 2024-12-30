@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import './App.css'
 
 
@@ -11,6 +11,7 @@ function DirectoryView() {
   const [progress,setProgress]=useState(0);
   const [renameFile,setRenameFile]=useState("");
   const [renameOption, setRenameOption]=useState("");
+  const [newDirName,setNewDirName]=useState("");
   const {'*' : dirName} = useParams();
   console.log(dirName);
   //const [api,setApi]=useState('http://192.168.0.8:4000');
@@ -24,7 +25,7 @@ function DirectoryView() {
 
   useEffect(()=>{
     getFilesFromServer();
-  },[]);
+  },[dirName]);
 
   // function openFile(fileOrNot,item){
 
@@ -35,10 +36,20 @@ function DirectoryView() {
 
   // }
 
+  async function handleCreateDir() {
+      const response= await fetch(`${BASE_URL}/directory/${dirName}/${newDirName}`,{
+        method:'POST'
+      });
+      const data = await response.json();
+      console.log(data);
+      setNewDirName("");
+      getFilesFromServer();
+    
+  }
   function handleFileChange(e){
     const file=e.target.files[0];
     const xhr= new XMLHttpRequest();
-    xhr.open('POST',`${BASE_URL}/files/${file.name}`,true);     
+    xhr.open('POST',`${BASE_URL}/files/${dirName}/${file.name}`,true);     
     xhr.addEventListener('load',()=>{
       console.log(xhr.response);
       getFilesFromServer();
@@ -61,7 +72,7 @@ function DirectoryView() {
     const confirmDelete = window.confirm('Are you sure to delete this file?');
     if(confirmDelete)
     {
-      const response=await fetch(`${BASE_URL}/files/${file}`,{
+      const response=await fetch(`${BASE_URL}/files/${dirName}/${file}`,{
         method:'DELETE',
       })
       const data= await response.json();
@@ -107,9 +118,9 @@ function DirectoryView() {
   async function saveFileName(fileName){
 
     console.log(fileName,renameFile);
-    const response = await fetch(`${BASE_URL}/files/${fileName}`, {
+    const response = await fetch(`${BASE_URL}/files/${dirName}/${fileName}`, {
       method: "PATCH",
-      body: JSON.stringify({renameFile}),
+      body: JSON.stringify({renameFile: `${dirName}/${renameFile}`}),
       headers: {
         "Content-Type" : "application/json"
       }
@@ -128,6 +139,12 @@ function DirectoryView() {
       <input type="file" onChange={handleFileChange} />
       
       <p>Uploded: {progress}%</p>
+
+      <form action="" className='space-x-2 ' onSubmit={handleCreateDir}>
+        <input type="text" onChange={(e)=> setNewDirName(e.target.value)} className='border-gray-500 border p-1 text-black rounded-md'/>
+        <button type="submit" className='bg-green-500 p-1 rounded-md text-white'>Create Folder</button>
+      </form>
+
       <div className='space-y-2'>
       {
           filesFromServer.map((item,key)=>{
@@ -142,10 +159,10 @@ function DirectoryView() {
                     
                     {
                       !item.isDirectory ? 
-                      <a href={`${BASE_URL}/files/${item.name}?action=open`}>Open</a> : 
-                      <a href={`./${item.name}`}>Open</a>
+                      <a href={`${BASE_URL}/files/${dirName}/${item.name}?action=open`}>Open</a> : 
+                      <Link to={`./${item.name}`} >Open</Link>
                     }
-                    <a href={`${BASE_URL}/files/${item.name}?action=download`}>{!item.isDirectory ? 'Download' : ''}</a>
+                    <a href={`${BASE_URL}/files/${dirName}/${item.name}?action=download`}>{!item.isDirectory ? 'Download' : ''}</a>
 
                     <button className='text-white bg-red-600 p-1 rounded-lg' onClick={()=>handleDelete(item.name)}>Delete</button>
                     <button className='text-white bg-blue-500 p-1 rounded-lg' onClick={()=> handleRenameButtonClick(item.name)}>Rename</button>

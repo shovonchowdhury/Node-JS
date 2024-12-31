@@ -1,6 +1,7 @@
 import express from "express";
 import { createWriteStream } from "fs";
 import { mkdir, readdir, rename, rm, stat } from "fs/promises";
+import path from "path";
 
 
 const app= express();
@@ -38,12 +39,11 @@ app.use(express.json());
 
 app.get('/directory/?*',async(req,res)=>{
 
-  const { 0: dirname } =req.params;
+  const dirname = path.join('/',req.params[0]);
   console.log(dirname);
   const fullDirPath = `./storage/${dirname ? dirname : ''}`
   const fileList = await readdir(fullDirPath);
   console.log(fullDirPath);
-
   const resData=[];
   for(const item of fileList)
   {
@@ -59,7 +59,7 @@ app.get('/directory/?*',async(req,res)=>{
 
 app.post('/directory/?*',async(req,res)=>{
 
-  const { 0: dirname } =req.params;
+  const dirname = path.join('/',req.params[0]);
   try{
     await mkdir(`./storage/${dirname}`);
   }
@@ -76,7 +76,7 @@ app.post('/directory/?*',async(req,res)=>{
 
 app.get('/files/*',(req,res)=>{
   console.log(req.params);
-  const { 0: filename }= req.params;
+  const filename = path.join('/',req.params[0]);
   console.log(req.query);
   console.log(filename);
 
@@ -90,7 +90,7 @@ app.get('/files/*',(req,res)=>{
 
 app.post('/files/*',(req,res)=>{
 
-  const {0:filename} = req.params;
+  const filename = path.join('/',req.params[0]);
   const writeStream = createWriteStream(`./storage/${filename}`);
   req.pipe(writeStream);
   req.on('end',()=>{
@@ -100,7 +100,7 @@ app.post('/files/*',(req,res)=>{
 
 app.delete('/files/*',async(req,res)=>{
 
-  const {0:filename}= req.params;
+  const filename = path.join('/',req.params[0]);
   try{
     await rm(`./storage/${filename}`,{recursive:true});
     res.json({message:"The file has been deleted.",OK:true});
@@ -113,7 +113,7 @@ app.delete('/files/*',async(req,res)=>{
 
 app.patch('/files/*',async(req,res)=>{
 
-  const {0:filename}= req.params;
+  const filename = path.join('/',req.params[0]);
   const {renameFile}= req.body;
   console.log(filename,renameFile);
   try{

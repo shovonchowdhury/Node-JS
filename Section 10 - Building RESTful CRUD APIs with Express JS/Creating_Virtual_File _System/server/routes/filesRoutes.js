@@ -3,6 +3,7 @@ import { createWriteStream } from "fs";
 import { rename, rm, writeFile } from "fs/promises";
 import path from "path";
 import filesData from "../filesDB.json" with {type:"json"};
+import directoriesData from "../directoriesDB.json" with {type:"json"};
 
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router.get('/:id',(req,res)=>{
   router.post('/:filename',(req,res)=>{
   
     const {filename} =req.params;
+    const parentDirId = req.headers.parentdirid || directoriesData[0].id
     const fileID = crypto.randomUUID();
     const extension = path.extname(filename);
     const encryptedFullName = `${fileID}${extension}`;
@@ -43,10 +45,18 @@ router.get('/:id',(req,res)=>{
       filesData.push({
         id : fileID,
         extension,
-        name : filename
+        name : filename,
+        parentDirId
       })
 
+      const parentIdData = directoriesData.find((directoryData)=>
+        directoryData.id === parentDirId
+      )
+      parentIdData.files.push(fileID);
+
+
       await writeFile('./filesDB.json',JSON.stringify(filesData));
+      await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
 
       res.json({message:"File uploaded successfully!!!"})
     })
@@ -57,10 +67,14 @@ router.get('/:id',(req,res)=>{
     const {id} = req.params;
     const fileIndex = filesData.findIndex((file)=> file.id === id);
     const expectedFile = filesData[fileIndex];
+    
     try{
       await rm(`./storage/${id}${expectedFile.extension}`,{recursive:true});
       filesData.splice(fileIndex, 1);
+      const parentDirData = directoriesData.find(directoryData=> directoryData.id===expectedFile.parentDirId)
+      parentDirData.files = parentDirData.files.filter(fileId=> fileId !== id);
       await writeFile('./filesDB.json',JSON.stringify(filesData));
+      await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
       res.json({message:"The file has been deleted.",OK:true});
     }
     catch(err){

@@ -7,25 +7,30 @@ import './App.css'
 
 function DirectoryView() {
   const BASE_URL= 'http://localhost:4000';
-  const [filesFromServer,setFilesFromServer] = useState([]);
+  // const [filesFromServer,setFilesFromServer] = useState([]);
+  const [directoriesList , setDirectoriesList] = useState([]);
+  const [filesList , setFilesList] = useState([]);
+
   const [progress,setProgress]=useState(0);
   const [renameFile,setRenameFile]=useState("");
   const [renameOption, setRenameOption]=useState("");
   const [newDirName,setNewDirName]=useState("");
-  const {'*' : dirName} = useParams();
-  console.log(dirName);
+  const {dirID} = useParams();
+  console.log(dirID);
   //const [api,setApi]=useState('http://192.168.0.8:4000');
   async function getFilesFromServer()
   {
-      const response= await fetch(`${BASE_URL}/directory/${dirName}`);
+      const response= await fetch(`${BASE_URL}/directory/${dirID || ""}`);
       const data = await response.json();
-      setFilesFromServer(data);
+      setDirectoriesList(data.directories);
+      setFilesList(data.files);
+      console.log(directoriesList)
       console.log(data);
   }
 
   useEffect(()=>{
     getFilesFromServer();
-  },[dirName]);
+  },[dirID]);
 
   // function openFile(fileOrNot,item){
 
@@ -37,8 +42,11 @@ function DirectoryView() {
   // }
 
   async function handleCreateDir() {
-      const response= await fetch(`${BASE_URL}/directory/${dirName}/${newDirName}`,{
-        method:'POST'
+      const response= await fetch(`${BASE_URL}/directory/${dirID || ""}`,{
+        method:'POST',
+        headers:{
+          dirname: newDirName
+        }
       });
       const data = await response.json();
       console.log(data);
@@ -49,7 +57,8 @@ function DirectoryView() {
   function handleFileChange(e){
     const file=e.target.files[0];
     const xhr= new XMLHttpRequest();
-    xhr.open('POST',`${BASE_URL}/files/${dirName}/${file.name}`,true);     
+    xhr.open('POST',`${BASE_URL}/file/${dirID || ""}`,true);  
+    xhr.setRequestHeader("filename", file.name) ;  
     xhr.addEventListener('load',()=>{
       console.log(xhr.response);
       getFilesFromServer();
@@ -67,12 +76,36 @@ function DirectoryView() {
 
   }
 
-  async function handleDelete(file){
+  async function handleDelete(id){
 
     const confirmDelete = window.confirm('Are you sure to delete this file?');
     if(confirmDelete)
     {
-      const response=await fetch(`${BASE_URL}/files/${dirName}/${file}`,{
+      const response=await fetch(`${BASE_URL}/file/${id}`,{
+        method:'DELETE',
+      })
+      const data= await response.json();
+      console.log(data);
+      if(data.OK)
+      {
+        alert("File deleted successfully!!");
+      }
+      else
+      {
+        alert("File not found.");
+      }
+    }
+      
+      getFilesFromServer();
+  }
+
+
+  async function handleDeleteDir(id){
+
+    const confirmDelete = window.confirm('Are you sure to delete this file?');
+    if(confirmDelete)
+    {
+      const response=await fetch(`${BASE_URL}/directory/${id}`,{
         method:'DELETE',
       })
       const data= await response.json();
@@ -115,12 +148,12 @@ function DirectoryView() {
       }
   }
 
-  async function saveFileName(fileName){
+  async function saveFileName(id){
 
-    console.log(fileName,renameFile);
-    const response = await fetch(`${BASE_URL}/files/${dirName}/${fileName}`, {
+    // console.log(fileName,renameFile);
+    const response = await fetch(`${BASE_URL}/file/${id}`, {
       method: "PATCH",
-      body: JSON.stringify({renameFile: `${dirName}/${renameFile}`}),
+      body: JSON.stringify({newFilename: renameFile}),
       headers: {
         "Content-Type" : "application/json"
       }
@@ -144,31 +177,52 @@ function DirectoryView() {
         <input type="text" onChange={(e)=> setNewDirName(e.target.value)} className='border-gray-500 border p-1 text-black rounded-md'/>
         <button type="submit" className='bg-green-500 p-1 rounded-md text-white'>Create Folder</button>
       </form>
-
+   
       <div className='space-y-2'>
       {
-          filesFromServer.map((item,key)=>{
+        directoriesList?.map(({name,id})=>{
 
-            //const fileOrNot= item.split('.');
           return (
-          <div key={key} className='space-x-7 flex'>
+            <div key={id} className='space-x-7 flex'>
                 <div >
-                    <p>{item.name}</p>
+                    <p>{name}</p>
                 </div>
                 <div className='space-x-2 text-blue-500'>
                     
-                    {
-                      !item.isDirectory ? 
-                      <a href={`${BASE_URL}/files/${dirName}/${item.name}?action=open`}>Open</a> : 
-                      <Link to={`./${item.name}`} >Open</Link>
-                    }
-                    <a href={`${BASE_URL}/files/${dirName}/${item.name}?action=download`}>{!item.isDirectory ? 'Download' : ''}</a>
+                    <Link to={`/directory/${id}`} >Open</Link>          
 
-                    <button className='text-white bg-red-600 p-1 rounded-lg' onClick={()=>handleDelete(item.name)}>Delete</button>
-                    <button className='text-white bg-blue-500 p-1 rounded-lg' onClick={()=> handleRenameButtonClick(item.name)}>Rename</button>
+                    <button className='text-white bg-red-600 p-1 rounded-lg' onClick={()=>handleDeleteDir(id)}>Delete</button>
+                    <button className='text-white bg-blue-500 p-1 rounded-lg' onClick={()=> handleRenameButtonClick(name)}>Rename</button>
 
-                    <input className={`border-gray-500 border p-1 text-black ${renameOption!=item.name && "hidden"}  rounded-md` }type="text"  value={renameFile} onChange={(e)=> {setRenameFile(e.target.value);  }}/>
-                    <button disabled={!renameFile ? true : false} className={`text-white ${renameOption!=item.name && "hidden"} bg-green-500 ${!renameFile && "bg-green-200"} px-2 py-1  rounded-lg` } onClick={() => saveFileName(item.name)}>Save</button>
+                    <input className={`border-gray-500 border p-1 text-black ${renameOption!=name && "hidden"}  rounded-md` }type="text"  value={renameFile} onChange={(e)=> {setRenameFile(e.target.value);  }}/>
+                    <button disabled={!renameFile ? true : false} className={`text-white ${renameOption!=name && "hidden"} bg-green-500 ${!renameFile && "bg-green-200"} px-2 py-1  rounded-lg` } onClick={() => saveFileName(id)}>Save</button>
+                    
+
+                </div>
+            </div>
+          )
+        })
+      }
+      {
+          filesList?.map(({name,id})=>{
+
+            //const fileOrNot= item.split('.');
+          return (
+          <div key={id} className='space-x-7 flex'>
+                <div >
+                    <p>{name}</p>
+                </div>
+                <div className='space-x-2 text-blue-500'>
+                    
+                    <a href={`${BASE_URL}/file/${id}`}>Open</a> 
+                    
+                    <a href={`${BASE_URL}/file/${id}?action=download`}>Download</a>
+
+                    <button className='text-white bg-red-600 p-1 rounded-lg' onClick={()=>handleDelete(id)}>Delete</button>
+                    <button className='text-white bg-blue-500 p-1 rounded-lg' onClick={()=> handleRenameButtonClick(name)}>Rename</button>
+
+                    <input className={`border-gray-500 border p-1 text-black ${renameOption!=name && "hidden"}  rounded-md` }type="text"  value={renameFile} onChange={(e)=> {setRenameFile(e.target.value);  }}/>
+                    <button disabled={!renameFile ? true : false} className={`text-white ${renameOption!=name && "hidden"} bg-green-500 ${!renameFile && "bg-green-200"} px-2 py-1  rounded-lg` } onClick={() => saveFileName(id)}>Save</button>
                     
 
                 </div>
@@ -177,7 +231,7 @@ function DirectoryView() {
               
             
           )})
-        }
+      }
       </div>
      
     </div>

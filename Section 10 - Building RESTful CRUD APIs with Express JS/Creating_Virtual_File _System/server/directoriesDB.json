@@ -1,9 +1,1 @@
-[
-    {
-        "id": "a965303d-2899-48f9-902b-bd1992d06778",
-        "name": "root",
-        "parentDirId": null,
-        "files": ["083d38dd-a74e-4777-98a2-75ee24caefa2"],
-        "directories": []
-    }
-]
+[{"id":"a965303d-2899-48f9-902b-bd1992d06778","name":"root","parentDirId":null,"files":["8122e9fd-256f-48b9-ae55-6f92cc7be21e","4bb54e9c-9734-4930-9ba6-cfc0aa4c47b3","0a8eddfa-774a-441f-a333-4805059187a3"],"directories":["bef2f750-ab14-4222-af5b-35a3c6311e8f"]},{"id":"bef2f750-ab14-4222-af5b-35a3c6311e8f","name":"image","parentDirId":"a965303d-2899-48f9-902b-bd1992d06778","files":["b21069fe-c3bd-44a9-8651-1183fbc1f629"],"directories":[]}]

@@ -20,20 +20,20 @@ router.get('/:id',(req,res)=>{
   
     if(req.query.action === 'download')
     {
-      res.set("Content-Disposition", "attachment");
+      res.set("Content-Disposition", `attachment; filename=${expectedFile.name}`);
     }
   
     res.sendFile(`${process.cwd()}/storage/${id}${expectedFile.extension}`,(err) => {
-      if (err) {
+      if (!res.headersSent) {
         res.json({ error: "File not found!" });
       }
     });
   })
   
-  router.post('/:filename',(req,res)=>{
+  router.post('/:parentDirId?',(req,res)=>{
   
-    const {filename} =req.params;
-    const parentDirId = req.headers.parentdirid || directoriesData[0].id
+    const parentDirId =req.params.parentDirId || directoriesData[0].id;
+    const filename = req.headers.filename;
     const fileID = crypto.randomUUID();
     const extension = path.extname(filename);
     const encryptedFullName = `${fileID}${extension}`;

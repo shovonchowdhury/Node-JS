@@ -41,7 +41,9 @@ function DirectoryView() {
 
   // }
 
-  async function handleCreateDir() {
+  async function handleCreateDir(e) {
+    e.preventDefault();
+    e.target.text.value="";
       const response= await fetch(`${BASE_URL}/directory/${dirID || ""}`,{
         method:'POST',
         headers:{
@@ -56,6 +58,7 @@ function DirectoryView() {
   }
   function handleFileChange(e){
     const file=e.target.files[0];
+
     const xhr= new XMLHttpRequest();
     xhr.open('POST',`${BASE_URL}/file/${dirID || ""}`,true);  
     xhr.setRequestHeader("filename", file.name) ;  
@@ -99,7 +102,22 @@ function DirectoryView() {
       getFilesFromServer();
   }
 
+  async function saveDirName(id){
 
+    // console.log(fileName,renameFile);
+    const response = await fetch(`${BASE_URL}/directory/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({newDirname: renameFile}),
+      headers: {
+        "Content-Type" : "application/json"
+      }
+    });
+    const data = await response.text();
+    console.log(data);
+    setRenameFile("");
+    getFilesFromServer();
+
+  }
   async function handleDeleteDir(id){
 
     const confirmDelete = window.confirm('Are you sure to delete this file?');
@@ -174,7 +192,7 @@ function DirectoryView() {
       <p>Uploded: {progress}%</p>
 
       <form action="" className='space-x-2 ' onSubmit={handleCreateDir}>
-        <input type="text" onChange={(e)=> setNewDirName(e.target.value)} className='border-gray-500 border p-1 text-black rounded-md'/>
+        <input type="text" name='text' onChange={(e)=> setNewDirName(e.target.value)} className='border-gray-500 border p-1 text-black rounded-md'/>
         <button type="submit" className='bg-green-500 p-1 rounded-md text-white'>Create Folder</button>
       </form>
    
@@ -195,7 +213,7 @@ function DirectoryView() {
                     <button className='text-white bg-blue-500 p-1 rounded-lg' onClick={()=> handleRenameButtonClick(name)}>Rename</button>
 
                     <input className={`border-gray-500 border p-1 text-black ${renameOption!=name && "hidden"}  rounded-md` }type="text"  value={renameFile} onChange={(e)=> {setRenameFile(e.target.value);  }}/>
-                    <button disabled={!renameFile ? true : false} className={`text-white ${renameOption!=name && "hidden"} bg-green-500 ${!renameFile && "bg-green-200"} px-2 py-1  rounded-lg` } onClick={() => saveFileName(id)}>Save</button>
+                    <button disabled={!renameFile ? true : false} className={`text-white ${renameOption!=name && "hidden"} bg-green-500 ${!renameFile && "bg-green-200"} px-2 py-1  rounded-lg` } onClick={() => saveDirName(id)}>Save</button>
                     
 
                 </div>

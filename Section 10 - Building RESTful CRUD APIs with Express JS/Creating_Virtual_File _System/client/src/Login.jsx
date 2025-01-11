@@ -6,12 +6,13 @@ const Login = () => {
   const BASE_URL = "http://localhost:4000";
 
   const [formData, setFormData] = useState({
-    email: "anurag@gmail.com",
+    email: "debojjoti550@gmail.com",
     password: "abcd",
   });
 
   // serverError will hold the error message from the server
   const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -33,12 +34,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${BASE_URL}/login`, {
+      const response = await fetch(`${BASE_URL}/user/login`, {
         method: "POST",
         body: JSON.stringify(formData),
         headers: {
           "Content-Type": "application/json",
         },
+        credentials:"include"
       });
 
       const data = await response.json();
@@ -60,7 +62,7 @@ const Login = () => {
 
   return (
     <div className="container">
-      <h2 className="heading">Login</h2>
+      <h2 className="heading text-2xl font-bold">Login</h2>
       <form className="form" onSubmit={handleSubmit}>
         {/* Email */}
         <div className="form-group">
@@ -84,16 +86,25 @@ const Login = () => {
           <label htmlFor="password" className="label">
             Password
           </label>
-          <input
-            className={`input ${hasError ? "input-error" : ""}`}
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Enter your password"
-            required
-          />
+          <div className="relative">
+              <input
+                className={`input ${hasError ? "input-error" : ""}`}
+                type={showPassword ? "text" : "password"} 
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-2/4 transform -translate-y-2/4 text-sm text-blue-500 hover:underline"
+                >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+          </div>
           {/* Absolutely-positioned error message below password field */}
           {serverError && <span className="error-msg">{serverError}</span>}
         </div>

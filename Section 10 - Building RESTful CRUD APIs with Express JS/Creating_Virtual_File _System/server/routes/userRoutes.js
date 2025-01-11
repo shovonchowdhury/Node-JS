@@ -7,7 +7,7 @@ import usersData from "../usersDB.json" with {type:"json"};
 
 const router = express.Router();
 
-router.post('/',async(req,res,next)=>{
+router.post('/register',async(req,res,next)=>{
     const {name,email,password} = req.body;
     // console.log(req.body)
     const userExited = usersData.find(user=> user.email === email);
@@ -50,6 +50,21 @@ router.post('/',async(req,res,next)=>{
     }
 
 
+})
+
+router.post('/login',(req,res,next)=>{
+    const {email,password} = req.body;
+
+    const user = usersData.find(user=> user.email === email);
+
+    if(!user || password!== user.password)
+    {
+        return res.status(404).json({error: 'Invalid Credentials.'});
+    }
+
+    res.cookie('uid',user.id);
+
+    res.json({message: 'logged in successfully!!'})
 })
 
 

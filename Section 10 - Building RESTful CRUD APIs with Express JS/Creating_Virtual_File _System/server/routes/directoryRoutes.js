@@ -10,7 +10,10 @@ const router = express.Router();
 
 router.get('/:id?',(req,res)=>{
 
-  const id=req.params.id || directoriesData[0].id;
+  // const {uid}=req.cookies;
+  // const rootDir = directoriesData.find(dir=> dir.userId === uid)
+  const id=req.params.id || req.user.rootDirId;
+  
   
     const directoryData = directoriesData.find(directory => 
       directory.id === id
@@ -29,7 +32,10 @@ router.get('/:id?',(req,res)=>{
 
 router.post('/:parentDirId?',async(req,res,next)=>{
 
-  const parentDirId = req.params.parentDirId || directoriesData[0].id  ;
+   const {uid}=req.cookies;
+  // const rootDir = directoriesData.find(dir=> dir.userId === uid)
+
+  const parentDirId = req.params.parentDirId || req.user.rootDirId ;
   const dirname = req.headers.dirname || 'New Folder';
   const dirID = crypto.randomUUID();
   //const encryptedFullName = `${dirID}${extension}`;
@@ -38,6 +44,7 @@ router.post('/:parentDirId?',async(req,res,next)=>{
     id: dirID,
     name : dirname,
     parentDirId,
+    userId:uid,
     files:[],
     directories:[]
   }

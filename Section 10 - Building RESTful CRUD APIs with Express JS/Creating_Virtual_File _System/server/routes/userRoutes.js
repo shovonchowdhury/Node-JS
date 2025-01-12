@@ -3,6 +3,8 @@ import express from "express";
 import { mkdir, readdir, rename, rm, stat, writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with {type:"json"};
 import usersData from "../usersDB.json" with {type:"json"};
+import checkAuth from "./../auth.js"
+import authCheck from "./../auth.js";
 
 
 const router = express.Router();
@@ -65,6 +67,17 @@ router.post('/login',(req,res,next)=>{
     res.cookie('uid',user.id);
 
     res.json({message: 'logged in successfully!!'})
+})
+
+router.get('/',authCheck,(req,res)=>{
+    res.status(200).json({name: req.user.name , email: req.user.email})
+
+})
+
+router.post('/logout', (req,res)=>{
+
+    res.clearCookie('uid');
+    res.status(204).end();
 })
 
 

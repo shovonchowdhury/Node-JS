@@ -87,6 +87,14 @@ router.get('/:id',(req,res)=>{
       return res.status(404).json({message: "File Not Found!",OK:false})
     }
     const expectedFile = filesData[fileIndex];
+
+    const parentDir = directoriesData.find((dir) => dir.id === expectedFile.parentDirId);
+    if (!parentDir) {
+      return res.status(404).json({ error: "Parent directory not found!" });
+    }
+    if (parentDir.userId !== req.user.id) {
+      return res.status(403).json({ error: "You don't have access to this file." });
+    }
     
     try{
       await rm(`./storage/${id}${expectedFile.extension}`,{recursive:true});
@@ -111,6 +119,15 @@ router.get('/:id',(req,res)=>{
     const expectedFile = filesData.find((file)=> file.id === id)
     if (!expectedFile) {
       return res.status(404).json({ message: "File Not Found!" });
+    }
+
+    // Check parent directory ownership
+    const parentDir = directoriesData.find((dir) => dir.id === expectedFile.parentDirId);
+    if (!parentDir) {
+      return res.status(404).json({ error: "Parent directory not found!" });
+    }
+    if (parentDir.userId !== req.user.id) {
+      return res.status(403).json({ error: "You don't have access to this file." });
     }
     // console.log(filename,renameFile);
     try{

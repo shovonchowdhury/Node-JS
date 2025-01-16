@@ -3,8 +3,8 @@ import express from "express";
 import { mkdir, readdir, rename, rm, stat, writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with {type:"json"};
 import usersData from "../usersDB.json" with {type:"json"};
-import checkAuth from "./../auth.js"
-import authCheck from "./../auth.js";
+import authCheck from "../middlewares/authMiddleware.js";
+
 
 
 const router = express.Router();

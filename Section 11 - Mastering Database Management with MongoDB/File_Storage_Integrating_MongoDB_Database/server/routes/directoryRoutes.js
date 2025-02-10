@@ -7,31 +7,30 @@ import directoriesData from "../directoriesDB.json" with {type:"json"};
 import filesData from "../filesDB.json" with {type:"json"};
 import { dir } from "console";
 import filterInvalidID from "../middlewares/filterInvalidIDMiddleware.js";
+import { Db, ObjectId } from "mongodb";
 
 const router = express.Router();
 
 router.param("id",filterInvalidID);
 router.param("parentDirId",filterInvalidID)
 
-router.get('/:id?',(req,res)=>{
+router.get('/:id?',async(req,res)=>{
 
   // const {uid}=req.cookies;
   // const rootDir = directoriesData.find(dir=> dir.userId === uid)
   const id=req.params.id || req.user.rootDirId;
-  
-  
-    const directoryData = directoriesData.find(directory => 
-      directory.id === id && directory.userId === req.user.id
-    );
-    if(!directoryData) return res.status(404).json({error: "Directory not found or you do not have access to it!"})
+  console.log({id});
+  const db  = req.db;
 
-    const files = directoryData.files.map(fileId=>
-      filesData.find(files=> files.id === fileId)
-    )
-    const directories = directoryData.directories.map(dirId=>
-      directoriesData.find(directory=> directory.id === dirId)
-    )
-    return res.status(200).json({...directoryData,files,directories});
+  const dirCollection = db.collection("directories");
+  const directoryData =await dirCollection.findOne({_id: new ObjectId(String(id)) , userId: req.user._id})
+
+  if(!directoryData) return res.status(404).json({error: "Directory not found or you do not have access to it!"})
+
+  const files = []
+  const directories = await dirCollection.find({parentDirId : new ObjectId(String(id))}).toArray();
+  console.log(directories);
+  return res.status(200).json({...directoryData,files,directories: directories.map(dir=> ({...dir,id:dir._id}))});
   
 
 })
@@ -39,28 +38,29 @@ router.get('/:id?',(req,res)=>{
 router.post('/:parentDirId?',async(req,res,next)=>{
 
    const {uid}=req.cookies;
+   const db = req.db;
   // const rootDir = directoriesData.find(dir=> dir.userId === uid)
 
   const parentDirId = req.params.parentDirId || req.user.rootDirId ;
+  console.log(parentDirId);
   const dirname = req.headers.dirname || 'New Folder';
-  const dirID = crypto.randomUUID();
+  // const dirID = crypto.randomUUID();
   //const encryptedFullName = `${dirID}${extension}`;
 
-  const directoryData={
-    id: dirID,
-    name : dirname,
-    parentDirId,
-    userId:uid,
-    files:[],
-    directories:[]
-  }
-  directoriesData.push(directoryData);
-  const parentDir = directoriesData.find((directory)=> directory.id === parentDirId);
+  const dirCollection = db.collection("directories");
+  const parentDir = await dirCollection.findOne({_id: new ObjectId(String(parentDirId))})
+
   if(!parentDir) 
     return res.status(404).json({message: "Parent Directory Does not exist!"})
-  parentDir.directories.push(dirID);
+
+  await dirCollection.insertOne({
+    name : dirname,
+    parentDirId,
+    userId : req.user._id,
+  })
+
   try{
-    await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
+    // await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
     return res.status(201).json({message:"Directory created successfully!!!"})
   }
   catch(err)
@@ -133,18 +133,24 @@ router.delete('/:id',async(req,res,next)=>{
 router.patch('/:id',async(req,res,next)=>{
   
   const {id} = req.params;
-  const {newDirname}= req.body;
-  const expectedDir = directoriesData.find((dir)=> dir.id === id)
-  if(!expectedDir) 
-    return res.status(404).json({message: "Directory not found!"})
+  const {newDirName}= req.body;
+  
+  const db = req.db;
+  // const expectedDir = directoriesData.find((dir)=> dir.id === id)
+  const dirCollection = db.collection("directories");
+  // const expectedDir = await dirCollection.findOne({_id: new ObjectId(String(id))})
+
+  // if(!expectedDir) 
+  //   return res.status(404).json({message: "Directory not found!"})
   // console.log(filename,renameFile);
 
-  if (expectedDir.userId !== req.user.id) {
-    return res.status(403).json({ message: "You are not authorized to delete this directory!" });
-  }
+  
   try{
-    expectedDir.name = newDirname;
-    await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
+    
+  
+    const a = await dirCollection.updateOne({_id: new ObjectId(String(id)) , userId : req.user._id},{$set:{name:newDirName}})
+    console.log(a);
+    // await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
     return res.status(200).json({message:"The directory has been renamed.",OK:true});
   }
   catch(err){

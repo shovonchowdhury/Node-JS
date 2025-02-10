@@ -133,7 +133,7 @@ router.delete('/:id',async(req,res,next)=>{
 router.patch('/:id',async(req,res,next)=>{
   
   const {id} = req.params;
-  const {newDirname}= req.body;
+  const {newDirName}= req.body;
   const expectedDir = directoriesData.find((dir)=> dir.id === id)
   if(!expectedDir) 
     return res.status(404).json({message: "Directory not found!"})
@@ -143,7 +143,8 @@ router.patch('/:id',async(req,res,next)=>{
     return res.status(403).json({ message: "You are not authorized to delete this directory!" });
   }
   try{
-    expectedDir.name = newDirname;
+    
+    expectedDir.name = newDirName;
     await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
     return res.status(200).json({message:"The directory has been renamed.",OK:true});
   }

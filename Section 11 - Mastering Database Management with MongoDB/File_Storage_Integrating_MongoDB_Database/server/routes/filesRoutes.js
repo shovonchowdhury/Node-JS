@@ -19,10 +19,12 @@ router.post('/:parentDirId?',(req,res,next)=>{
 
   const parentDirId =req.params.parentDirId || req.user.rootDirId;
   const filename = req.headers.filename || 'untitled';
-  const fileID = crypto.randomUUID();
-  const extension = path.extname(filename);
-  const encryptedFullName = `${fileID}${extension}`;
-  console.log(encryptedFullName);
+  const db = req.db;
+  // const fileID = crypto.randomUUID();
+  // const extension = path.extname(filename);
+  // const encryptedFullName = `${fileID}${extension}`;
+  // console.log(encryptedFullName);
+  const fileCollection = db.collection("files");
   const writeStream = createWriteStream(`./storage/${encryptedFullName}`);
   req.pipe(writeStream);
   req.on('end',async()=>{

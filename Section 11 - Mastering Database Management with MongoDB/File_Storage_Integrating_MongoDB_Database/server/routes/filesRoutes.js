@@ -22,7 +22,7 @@ router.post('/:parentDirId?',async(req,res,next)=>{
 
   const dirCollection = db.collection("directories");
   const parentDirData = await dirCollection.findOne({_id: new ObjectId(String(parentDirId)) , userId: req.user._id});
-  console.log({parentDirData});
+  // console.log({parentDirData});
 
   if(!parentDirData)
   {

@@ -14,6 +14,7 @@ router.get('/:id?',async(req,res)=>{
   // const rootDir = directoriesData.find(dir=> dir.userId === uid)
   const id=req.params.id || req.user.rootDirId;
   // console.log({id});
+
   const db  = req.db;
 
   const dirCollection = db.collection("directories");

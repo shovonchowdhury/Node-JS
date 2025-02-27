@@ -4,7 +4,7 @@ import { mkdir, readdir, rename, rm, stat, writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with {type:"json"};
 import usersData from "../usersDB.json" with {type:"json"};
 import authCheck from "../middlewares/authMiddleware.js";
-import { Db } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 
 
 
@@ -31,30 +31,31 @@ router.post('/register',async(req,res,next)=>{
     {
         // await writeFile('./directoriesDB.json',JSON.stringify(directoriesData));
         // await writeFile('./usersDB.json',JSON.stringify(usersData));
+        const userId = new ObjectId();
+        const rootDirId = new ObjectId();
 
         const userCollection = db.collection("users");
 
-        const createdUser = await userCollection.insertOne({
+        await userCollection.insertOne({
+            _id: userId,
             name,
             email,
             password,
+            rootDirId,
         })
     
-        const userId = createdUser.insertedId;
+        //const userId = createdUser.insertedId;
     
     
         // console.log(userId);
     
-        const userRootDir = await db.collection("directories").insertOne({
+         await db.collection("directories").insertOne({
+            _id : rootDirId,
             name: `root-${email}`,
             userId,
             parentDirId:null,
         })
     
-        const rootDirId = userRootDir.insertedId;
-    
-        await userCollection.updateOne({_id : userId},{$set:{rootDirId}});
-
         return res.status(201).json({message: "User Registered"});
     }
     catch(err){

@@ -64,6 +64,10 @@ router.post('/:parentDirId?',async(req,res,next)=>{
   }
   catch(err)
   {
+    if(err.code === 121)
+      {
+          return res.status(400).json({error: 'Invalid input! please input valid details.'})
+      }
     next(err);
   }
   

@@ -6,9 +6,7 @@ import directoryRoutes from './routes/directoryRoutes.js';
 import filesRoutes from './routes/filesRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authCheck from "./middlewares/authMiddleware.js";
-import { connectDB } from "./DB.js";
-// import authCheck from "./auth.js";
-
+import { connectDB } from "./config/DB.js";
 
 try{
 
@@ -37,7 +35,8 @@ try{
   app.use('/user',userRoutes);
 
   app.use((err, req, res, next) => {
-    res.status(err.status || 500).json({ message: "Something went wrong!" });
+    console.log(err)
+    res.status(err.status || 500).json({ error: "Something went wrong!" });
   });
 
   app.listen(port,()=>{

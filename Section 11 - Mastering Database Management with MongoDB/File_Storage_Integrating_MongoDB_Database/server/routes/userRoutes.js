@@ -1,10 +1,7 @@
 import express from "express";
-
-import { mkdir, readdir, rename, rm, stat, writeFile } from "fs/promises";
-import directoriesData from "../directoriesDB.json" with {type:"json"};
-import usersData from "../usersDB.json" with {type:"json"};
 import authCheck from "../middlewares/authMiddleware.js";
 import { Db, ObjectId } from "mongodb";
+
 
 
 
@@ -59,6 +56,11 @@ router.post('/register',async(req,res,next)=>{
         return res.status(201).json({message: "User Registered"});
     }
     catch(err){
+
+        if(err.code === 121)
+        {
+            return res.status(400).json({error: 'Invalid input! please input valid details.'})
+        }
         next(err);
     }
 

@@ -1,6 +1,7 @@
 import express from "express";
 import authCheck from "../middlewares/authMiddleware.js";
 import { Db, ObjectId } from "mongodb";
+import { client } from "../config/DB.js";
 
 
 
@@ -23,7 +24,8 @@ router.post('/register',async(req,res,next)=>{
     // const userId = crypto.randomUUID();
     // const rootDirId = crypto.randomUUID();
 
-    const 
+    const session = client.startSession();
+    session.startTransaction();
 
 
     try
@@ -41,7 +43,7 @@ router.post('/register',async(req,res,next)=>{
             email,
             password,
             rootDirId,
-        })
+        }, {session});
     
         //const userId = createdUser.insertedId;
     
@@ -53,12 +55,14 @@ router.post('/register',async(req,res,next)=>{
             name: `root-${email}`,
             userId,
             parentDirId:null,
-        })
+        },{session});
+
+        await session.commitTransaction();
     
         return res.status(201).json({message: "User Registered"});
     }
     catch(err){
-
+        await session.abortTransaction();
         if(err.code === 121)
         {
             return res.status(400).json({error: 'Invalid input! please input valid details.'})

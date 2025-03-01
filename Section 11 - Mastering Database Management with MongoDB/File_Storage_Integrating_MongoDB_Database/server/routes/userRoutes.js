@@ -23,6 +23,8 @@ router.post('/register',async(req,res,next)=>{
     // const userId = crypto.randomUUID();
     // const rootDirId = crypto.randomUUID();
 
+    const 
+
 
     try
     {

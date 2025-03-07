@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
- export const client = new MongoClient("mongodb://127.0.0.1:27017/storageApp");
+ export const client = new MongoClient("mongodb://shovon:shovon123@localhost:27017/storageApp");
 
 
 

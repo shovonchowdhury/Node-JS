@@ -7,8 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import checkAuth from "./middlewares/authMiddleware.js";
 import { connectDB } from "./config/db.js";
 
-try {
-  const db = await connectDB();
+  await connectDB();
 
   const app = express();
   app.use(cookieParser());
@@ -19,11 +18,6 @@ try {
       credentials: true,
     })
   );
-
-  app.use((req, res, next) => {
-    req.db = db;
-    next();
-  });
 
   app.use("/directory", checkAuth, directoryRoutes);
   app.use("/file", checkAuth, fileRoutes);
@@ -37,7 +31,4 @@ try {
   app.listen(4000, () => {
     console.log(`Server Started`);
   });
-} catch (err) {
-  console.log("Could not connect to database!");
-  console.log(err);
-}
+

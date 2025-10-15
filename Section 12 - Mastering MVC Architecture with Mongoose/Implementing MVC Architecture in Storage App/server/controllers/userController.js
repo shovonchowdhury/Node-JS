@@ -1,46 +1,43 @@
-import { client } from "../config/db.js";
-import { ObjectId } from "mongodb";
+// import { client } from "../config/db.js";
+import UserModel from "../models/UserModel.js";
+import DirectoryModel from "../models/DirectoryModel.js";
+import mongoose from "mongoose";
 
 export const registerUser =  async (req, res, next) => {
     const { name, email, password } = req.body;
-    const db = req.db;
-    const foundUser = await db.collection("users").findOne({ email });
-    if (foundUser) {
-      return res.status(409).json({
-        error: "User already exists",
-        message:
-          "A user with this email address already exists. Please try logging in or use a different email.",
-      });
-    }
-    const session = client.startSession();
+    const session = await mongoose.startSession();
   
     try {
-      const rootDirId = new ObjectId();
-      const userId = new ObjectId();
-      const dirCollection = db.collection("directories");
+      const rootDirId = new mongoose.Types.ObjectId();
+      const userId = new mongoose.Types.ObjectId();
   
       session.startTransaction();
-  
-      await dirCollection.insertOne(
-        {
-          _id: rootDirId,
-          name: `root-${email}`,
-          parentDirId: null,
-          userId,
-        },
+
+      await DirectoryModel.create(
+        [
+          {
+            _id: rootDirId,
+            name: `root-${email}`,
+            parentDirId: null,
+            userId,
+          },
+        ],
         { session }
       );
-  
-      await db.collection("users").insertOne(
-        {
-          _id: userId,
-          name,
-          email,
-          password,
-          rootDirId,
-        },
+
+      await UserModel.create(
+        [
+          {
+            _id: userId,
+            name,
+            email,
+            password,
+            rootDirId,
+          },
+        ],
         { session }
       );
+
   
       session.commitTransaction();
   
@@ -51,7 +48,17 @@ export const registerUser =  async (req, res, next) => {
         res
           .status(400)
           .json({ error: "Invalid input, please enter valid details" });
-      } else {
+      } 
+      else if (err.code === 11000) {
+        if (err.keyValue.email) {
+          return res.status(409).json({
+            error: "User already exists",
+            message:
+              "A user with this email address already exists. Please try logging in or use a different email.",
+          });
+        }
+      }
+      else {
         next(err);
       }
     }
@@ -59,8 +66,7 @@ export const registerUser =  async (req, res, next) => {
 
   export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
-    const db = req.db;
-    const user = await db.collection("users").findOne({ email, password });
+    const user = await UserModel.findOne({ email, password });
     if (!user) {
       return res.status(404).json({ error: "Invalid Credentials" });
     }
